@@ -3,12 +3,27 @@ import { apiData } from "../api/apiData";
 const namespace = 'pokemons';
 export const getPokemons = createAsyncThunk(
     `${namespace}/getPokemons`,
-    async (size,page) => {
+    async ({size,page}) => {
         return await apiData.getPokemons(size,page)
     }
 )
 
-const pokemonInfoState = {
+export const getPokemonById = createAsyncThunk (
+    `${namespace}/getPokemonById`,
+    async (id) => {
+        return await apiData.getPokemonById(id)
+    }
+)
+
+const pokemonDetailInitial = {
+    name:"", 
+    id:"", 
+    sprites: {
+        front_default: ""
+    }, 
+    height: "",
+    weight: "",
+    types: []
 
 }
 export const pokemonsSlice = createSlice({
@@ -17,16 +32,14 @@ export const pokemonsSlice = createSlice({
         pokemons:[],
         loading:false,
         message:"",
-        pokemonInfo:pokemonInfoState
+        total:"0",
+        pokemonDetailed:pokemonDetailInitial
     },
-    reducers: {
-
-    },
+ 
     extraReducers: builder => {
         builder
             .addCase(getPokemons.pending, (state) => {
                 state.loading = true;
-                state.pokemonInfo = pokemonInfoState,
                 state.message = ""
             })
             .addCase(getPokemons.rejected, (state) => {
@@ -35,7 +48,24 @@ export const pokemonsSlice = createSlice({
             })
             .addCase(getPokemons.fulfilled, (state,action) => {
                 state.loading = false;
-                state.pokemons = action.payload;
+                state.pokemons = action.payload.results;
+                state.total = action.payload.count
+            })
+            .addCase(getPokemonById.pending, (state) => {
+                state.loading = true;
+                state.message = "";
+                state.pokemonDetailed = pokemonDetailInitial
+            })
+            .addCase(getPokemonById.rejected, (state) => {
+                state.loading = false;
+                state.message = "Something went wrong!"
+            })
+            .addCase(getPokemonById.fulfilled, (state,action) => {
+                state.loading = false;
+                state.pokemonDetailed = action.payload;
             })
     }
 })
+
+
+export default pokemonsSlice.reducer;
